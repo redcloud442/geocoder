@@ -22,7 +22,6 @@ export default function MapAddressInput() {
   const [result, setResult] = useState<Payload | null>(null);
   const [showAddressPicker, setShowAddressPicker] = useState(false);
 
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const {
@@ -38,7 +37,7 @@ export default function MapAddressInput() {
       suburb: "",
       state: "",
       postcode: "",
-      country: "",
+      country: "Australia",
     },
   });
 
@@ -61,6 +60,7 @@ export default function MapAddressInput() {
         setAddress(place.formatted_address || place.name || "");
         setResult(null);
         setShowManualAddress(false);
+        setShowAddressPicker(false);
       });
     });
 
@@ -90,6 +90,29 @@ export default function MapAddressInput() {
   useEffect(() => {
     handleDetectUserLocation();
   }, []);
+
+  useEffect(() => {
+    const container = document.querySelector(".pac-container") as HTMLElement;
+
+    if (!container) return;
+
+    const observer = new MutationObserver(() => {
+      const display = getComputedStyle(container).display;
+      console.log(display);
+      if (display === "none") {
+        setShowAddressPicker(true);
+      } else {
+        setShowAddressPicker(false);
+      }
+    });
+
+    observer.observe(container, {
+      attributes: true,
+      attributeFilter: ["style"],
+    });
+
+    return () => observer.disconnect();
+  }, [address]);
 
   const handleAddressSubmit = async () => {
     if (selectedFromGoogle && address.trim()) {
@@ -141,17 +164,6 @@ export default function MapAddressInput() {
           setAddress(e.target.value);
           setSelectedFromGoogle(false);
           setResult(null);
-
-          if (e.target.value.length > 5) {
-            if (timerRef.current) {
-              clearTimeout(timerRef.current);
-            }
-            timerRef.current = setTimeout(() => {
-              if (!selectedFromGoogle) {
-                setShowAddressPicker(true);
-              }
-            }, 500);
-          }
         }}
         placeholder="Start typing your address..."
         className="w-full border px-4 py-2 rounded"
@@ -174,12 +186,14 @@ export default function MapAddressInput() {
         you can enter it manually.
       </p>
 
-      <button
-        onClick={handleAddressSubmit}
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
-      >
-        Submit Address
-      </button>
+      {!showManualAddress && (
+        <button
+          onClick={handleAddressSubmit}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+        >
+          Submit Address
+        </button>
+      )}
 
       {showManualAddress && (
         <form onSubmit={handleFormSubmit(handleManualSubmit)}>

@@ -16,6 +16,9 @@ export async function GET(request: NextRequest) {
       params: {
         address,
         key: process.env.GOOGLE_MAPS_API_KEY!,
+        components: {
+          country: "au",
+        },
       },
     });
 
@@ -25,8 +28,24 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ confidence: 0, isVerified: false });
     }
 
+    const countryComponent = result.address_components.find(
+      (component: { types: string[] }) => component.types.includes("country")
+    );
     const confidence = result.partial_match ? 0.5 : 1.0;
     const formattedAddress = result.formatted_address;
+
+    const isInAustralia =
+      countryComponent?.long_name === "Australia" && confidence >= 0.8;
+
+    if (!isInAustralia) {
+      return NextResponse.json({
+        confidence,
+        isVerified: false,
+        fullAddress: formattedAddress,
+        country: countryComponent?.long_name,
+        error: "The address is not in Australia.",
+      });
+    }
 
     return NextResponse.json({
       confidence,

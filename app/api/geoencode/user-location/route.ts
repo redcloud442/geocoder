@@ -35,7 +35,6 @@ export async function POST(request: NextRequest) {
     const formattedAddress = results[0].formatted_address;
 
     return NextResponse.json({
-      confidence,
       isVerified: confidence >= 0.8,
       fullAddress: formattedAddress,
       country,
