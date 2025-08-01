@@ -2,7 +2,7 @@
 
 import { Address, addressSchema } from "@/lib/schema";
 import { ManualAddress, Payload } from "@/lib/types";
-import { handleFetch, handleReverseGeocode } from "@/services/geoencode";
+import { handleFetch } from "@/services/geoencode";
 import { Loader } from "@googlemaps/js-api-loader";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useRef, useState } from "react";
@@ -72,25 +72,6 @@ export default function MapAddressInput() {
     };
   }, []);
 
-  const handleDetectUserLocation = async () => {
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
-
-        const result = await handleReverseGeocode(latitude, longitude);
-
-        setCurrentCountry(result.country || "Australia");
-      },
-      (error) => {
-        console.warn("Location access denied");
-      }
-    );
-  };
-
-  useEffect(() => {
-    handleDetectUserLocation();
-  }, []);
-
   useEffect(() => {
     const container = document.querySelector(".pac-container") as HTMLElement;
 
@@ -115,18 +96,14 @@ export default function MapAddressInput() {
   }, [address]);
 
   const handleAddressSubmit = async () => {
-    if (selectedFromGoogle && address.trim()) {
-      const payload: Payload = {
-        fullAddress: address,
-        isVerified: true,
-      };
-
-      setResult(payload);
-      setShowManualAddress(false);
-    } else {
-      setShowManualAddress(true);
-      setResult(null);
+    if (!selectedFromGoogle && !address.trim()) {
+        setShowManualAddress(true);
+        setResult(null);
     }
+
+    const result = await handleFetch(address);
+
+    setResult(result)
   };
 
   const handleManualSubmit = async (data: ManualAddress) => {

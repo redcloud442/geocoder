@@ -92,6 +92,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         error: "Geocoding or IP check failed",
+        message: "Our system detected that the address is not in Australia. Please check the address and try again.",
       },
       { status: 500 }
     );
