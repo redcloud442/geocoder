@@ -1,8 +1,10 @@
 "use client";
 
+import { Address, addressSchema } from "@/lib/schema";
 import { ManualAddress, Payload } from "@/lib/types";
 import { handleFetch } from "@/services/geoencode";
 import { Loader } from "@googlemaps/js-api-loader";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import MapWithMarker from "./GoogleMap";
@@ -26,7 +28,9 @@ export default function MapAddressInput() {
     handleSubmit: handleFormSubmit,
     watch,
     reset,
-  } = useForm<ManualAddress>({
+    formState: { errors },
+  } = useForm<Address>({
+    resolver: zodResolver(addressSchema),
     defaultValues: {
       street: "",
       suburb: "",
@@ -57,7 +61,6 @@ export default function MapAddressInput() {
       });
     });
 
-    // Optional cleanup (in case you unmount)
     return () => {
       if (autocomplete) {
         google.maps.event.clearInstanceListeners(autocomplete);
@@ -135,12 +138,20 @@ export default function MapAddressInput() {
             </p>
             {(Object.keys(manualAddress) as (keyof ManualAddress)[]).map(
               (field) => (
-                <input
-                  key={field}
-                  className="w-full border px-3 py-2 rounded"
-                  placeholder={field[0].toUpperCase() + field.slice(1)}
-                  {...register(field)}
-                />
+                <>
+                  <input
+                    key={field}
+                    className="w-full border px-3 py-2 rounded"
+                    placeholder={field[0].toUpperCase() + field.slice(1)}
+                    {...register(field)}
+                  />
+
+                  {errors && (
+                    <p className="text-red-500 text-sm">
+                      {errors[field]?.message}
+                    </p>
+                  )}
+                </>
               )
             )}
 
