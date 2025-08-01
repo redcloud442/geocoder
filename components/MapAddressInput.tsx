@@ -2,7 +2,7 @@
 
 import { Address, addressSchema } from "@/lib/schema";
 import { ManualAddress, Payload } from "@/lib/types";
-import { handleFetch } from "@/services/geoencode";
+import { handleFetch, handleReverseGeocode } from "@/services/geoencode";
 import { Loader } from "@googlemaps/js-api-loader";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useRef, useState } from "react";
@@ -16,12 +16,14 @@ const loader = new Loader({
 });
 
 export default function MapAddressInput() {
-  const inputRef = useRef<HTMLInputElement | null>(null);
-
   const [address, setAddress] = useState("");
   const [showManualAddress, setShowManualAddress] = useState(false);
   const [selectedFromGoogle, setSelectedFromGoogle] = useState(false);
   const [result, setResult] = useState<Payload | null>(null);
+  const [showAddressPicker, setShowAddressPicker] = useState(false);
+
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const {
     register,
@@ -49,11 +51,12 @@ export default function MapAddressInput() {
       if (!inputRef.current || !window.google) return;
 
       autocomplete = new google.maps.places.Autocomplete(inputRef.current, {
-        types: ["geocode"],
+        types: ["address"],
+        componentRestrictions: { country: "au" },
       });
-
       autocomplete.addListener("place_changed", () => {
         const place = autocomplete.getPlace();
+
         setSelectedFromGoogle(true);
         setAddress(place.formatted_address || place.name || "");
         setResult(null);
@@ -66,6 +69,26 @@ export default function MapAddressInput() {
         google.maps.event.clearInstanceListeners(autocomplete);
       }
     };
+  }, []);
+
+  const handleDetectUserLocation = async () => {
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+
+        const result = await handleReverseGeocode(latitude, longitude);
+
+        setAddress(result.country || "");
+        setResult(result);
+      },
+      (error) => {
+        console.warn("Location access denied");
+      }
+    );
+  };
+
+  useEffect(() => {
+    handleDetectUserLocation();
   }, []);
 
   const handleAddressSubmit = async () => {
@@ -99,8 +122,13 @@ export default function MapAddressInput() {
     reset();
   };
 
+  const handleAddressPicker = () => {
+    setShowAddressPicker(false);
+    setShowManualAddress(true);
+  };
+
   return (
-    <div className="space-y-4 max-w-xl mx-auto">
+    <div className="space-y-4 max-w-xl mx-auto relative">
       <label htmlFor="autocomplete" className="text-sm font-medium">
         Address
       </label>
@@ -113,10 +141,33 @@ export default function MapAddressInput() {
           setAddress(e.target.value);
           setSelectedFromGoogle(false);
           setResult(null);
+
+          if (e.target.value.length > 5) {
+            if (timerRef.current) {
+              clearTimeout(timerRef.current);
+            }
+            timerRef.current = setTimeout(() => {
+              if (!selectedFromGoogle) {
+                setShowAddressPicker(true);
+              }
+            }, 500);
+          }
         }}
         placeholder="Start typing your address..."
         className="w-full border px-4 py-2 rounded"
       />
+
+      {showAddressPicker && (
+        <div className="space-y-2 border p-4 rounded bg-white text-black mt-4 absolute -top-10 -right-42">
+          <p className="text-sm font-medium">Can&apos;t find your address?</p>
+          <button
+            onClick={handleAddressPicker}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+          >
+            Enter manually
+          </button>
+        </div>
+      )}
 
       <p className="text-xs text-gray-600">
         Start typing and choose from the list. If your address doesn’t appear,
