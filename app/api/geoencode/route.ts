@@ -70,29 +70,26 @@ export async function GET(request: NextRequest) {
 
     if (!isInAustralia || ipCountry !== "Australia") {
       return NextResponse.json({
-        confidence,
         isVerified: false,
         fullAddress: formattedAddress,
         country: addressCountry,
-        ipCountry,
         error:
           "Country mismatch: the IP does not match the address country or is not in Australia.",
       });
     }
 
     return NextResponse.json({
-      confidence,
       isVerified: true,
       fullAddress: formattedAddress,
       country: addressCountry,
-      ipCountry,
     });
   } catch (err) {
     console.error("Error during verification:", err);
     return NextResponse.json(
       {
         error: "Geocoding or IP check failed",
-        message: "Our system detected that the address is not in Australia. Please check the address and try again.",
+        message:
+          "Our system detected that the address is not in Australia. Please check the address and try again.",
       },
       { status: 500 }
     );
