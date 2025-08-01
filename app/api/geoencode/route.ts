@@ -72,7 +72,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         isVerified: false,
         fullAddress: formattedAddress,
-        country: addressCountry,
         error:
           "Country mismatch: the IP does not match the address country or is not in Australia.",
       });
