@@ -5,7 +5,7 @@ export const addressSchema = z.object({
   suburb: z.string().min(1),
   state: z.string().min(1),
   postcode: z.string().min(1),
-  country: z.literal("Australia"),
+  country: z.string().min(1),
 });
 
 export type Address = z.infer<typeof addressSchema>;

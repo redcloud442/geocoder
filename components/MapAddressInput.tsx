@@ -21,6 +21,7 @@ export default function MapAddressInput() {
   const [selectedFromGoogle, setSelectedFromGoogle] = useState(false);
   const [result, setResult] = useState<Payload | null>(null);
   const [showAddressPicker, setShowAddressPicker] = useState(false);
+  const [currentCountry, setCurrentCountry] = useState("Australia");
 
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -37,7 +38,7 @@ export default function MapAddressInput() {
       suburb: "",
       state: "",
       postcode: "",
-      country: "Australia",
+      country: "",
     },
   });
 
@@ -78,8 +79,7 @@ export default function MapAddressInput() {
 
         const result = await handleReverseGeocode(latitude, longitude);
 
-        setAddress(result.country || "");
-        setResult(result);
+        setCurrentCountry(result.country || "Australia");
       },
       (error) => {
         console.warn("Location access denied");
@@ -155,6 +155,10 @@ export default function MapAddressInput() {
       <label htmlFor="autocomplete" className="text-sm font-medium">
         Address
       </label>
+
+      <p className="text-xs text-gray-600">
+        You are currently in <span className="font-bold">{currentCountry}</span>
+      </p>
 
       <input
         id="autocomplete"
