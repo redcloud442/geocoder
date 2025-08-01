@@ -87,12 +87,11 @@ export async function GET(request: NextRequest) {
       country: addressCountry,
       ipCountry,
     });
-  } catch (err: any) {
+  } catch (err) {
     console.error("Error during verification:", err);
     return NextResponse.json(
       {
         error: "Geocoding or IP check failed",
-        details: err?.message || "Unexpected error",
       },
       { status: 500 }
     );
