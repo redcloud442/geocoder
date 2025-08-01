@@ -38,7 +38,7 @@ export default function MapAddressInput() {
       suburb: "",
       state: "",
       postcode: "",
-      country: "Australia",
+      country: "",
     },
   });
 
@@ -79,7 +79,6 @@ export default function MapAddressInput() {
 
         const result = await handleReverseGeocode(latitude, longitude);
 
-        // setResult(result);
         setCurrentCountry(result.country || "Australia");
       },
       (error) => {
