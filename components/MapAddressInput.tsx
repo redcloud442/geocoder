@@ -7,6 +7,7 @@ import { handleFetch } from "@/services/geoencode";
 import { Loader } from "@googlemaps/js-api-loader";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
+import MapWithMarker from "./GoogleMap";
 
 const loader = new Loader({
   apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
@@ -64,6 +65,8 @@ export default function MapAddressInput() {
   }, []);
 
   useEffect(() => {
+    if (!window.google) return;
+
     loader.load().then(() => {
       if (mapRef.current) return;
 
@@ -197,7 +200,7 @@ export default function MapAddressInput() {
               <p className="text-sm font-medium">
                 📍 Or drop a pin to set your location:
               </p>
-              <div id="map" className="w-full h-64 border rounded" />
+              <MapWithMarker setResult={setResult} setAddress={setAddress} />
             </div>
           )}
         </form>
