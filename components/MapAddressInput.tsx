@@ -1,7 +1,5 @@
 "use client";
 
-import { DEFAULT_COORDS } from "@/lib/constant";
-import { reverseGeocodeAndUpdate } from "@/lib/helper";
 import { ManualAddress, Payload } from "@/lib/types";
 import { handleFetch } from "@/services/geoencode";
 import { Loader } from "@googlemaps/js-api-loader";
@@ -17,14 +15,11 @@ const loader = new Loader({
 
 export default function MapAddressInput() {
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const mapRef = useRef<google.maps.Map | null>(null);
-  const markerRef = useRef<google.maps.Marker | null>(null);
 
   const [address, setAddress] = useState("");
   const [showManualAddress, setShowManualAddress] = useState(false);
   const [selectedFromGoogle, setSelectedFromGoogle] = useState(false);
   const [result, setResult] = useState<Payload | null>(null);
-  const [hasMounted, setHasMounted] = useState(false);
 
   const {
     register,
@@ -43,70 +38,32 @@ export default function MapAddressInput() {
 
   const manualAddress = watch();
 
-  useEffect(() => setHasMounted(true), []);
-
   useEffect(() => {
-    if (!window.google || !inputRef.current) return;
-
-    const autocomplete = new window.google.maps.places.Autocomplete(
-      inputRef.current,
-      {
-        types: ["geocode"],
-      }
-    ) as google.maps.places.Autocomplete;
-
-    autocomplete.addListener("place_changed", () => {
-      const place = autocomplete.getPlace();
-      setSelectedFromGoogle(true);
-      setAddress(place.formatted_address || place.name || "");
-      setResult(null);
-      setShowManualAddress(false);
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!window.google) return;
+    let autocomplete: google.maps.places.Autocomplete;
 
     loader.load().then(() => {
-      if (mapRef.current) return;
+      if (!inputRef.current || !window.google) return;
 
-      const mapContainer = document.getElementById("map");
-      if (!mapContainer) return;
-
-      const map = new google.maps.Map(mapContainer, {
-        center: DEFAULT_COORDS,
-        zoom: 13,
+      autocomplete = new google.maps.places.Autocomplete(inputRef.current, {
+        types: ["geocode"],
       });
 
-      const marker = new google.maps.Marker({
-        position: DEFAULT_COORDS,
-        map,
-        draggable: true,
+      autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
+        setSelectedFromGoogle(true);
+        setAddress(place.formatted_address || place.name || "");
+        setResult(null);
+        setShowManualAddress(false);
       });
-
-      mapRef.current = map;
-      markerRef.current = marker;
-
-      marker.addListener("dragend", () => handleMarkerDrag(marker));
     });
+
+    // Optional cleanup (in case you unmount)
+    return () => {
+      if (autocomplete) {
+        google.maps.event.clearInstanceListeners(autocomplete);
+      }
+    };
   }, []);
-
-  const handleMarkerDrag = async (marker: google.maps.Marker) => {
-    const pos = marker.getPosition();
-    if (!pos) return;
-
-    const coords = { lat: pos.lat(), lng: pos.lng() };
-    const address = await reverseGeocodeAndUpdate(coords);
-
-    setAddress(address || "");
-
-    setResult({
-      fullAddress: address || "",
-      isVerified: true,
-      lat: coords.lat,
-      lng: coords.lng,
-    });
-  };
 
   const handleAddressSubmit = async () => {
     if (selectedFromGoogle && address.trim()) {
@@ -195,14 +152,12 @@ export default function MapAddressInput() {
             </button>
           </div>
 
-          {hasMounted && (
-            <div className="mt-4 space-y-2">
-              <p className="text-sm font-medium">
-                📍 Or drop a pin to set your location:
-              </p>
-              <MapWithMarker setResult={setResult} setAddress={setAddress} />
-            </div>
-          )}
+          <div className="mt-4 space-y-2">
+            <p className="text-sm font-medium">
+              📍 Or drop a pin to set your location:
+            </p>
+            <MapWithMarker setResult={setResult} setAddress={setAddress} />
+          </div>
         </form>
       )}
 
