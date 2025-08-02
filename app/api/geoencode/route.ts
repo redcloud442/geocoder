@@ -53,7 +53,6 @@ export async function GET(request: NextRequest) {
     const formattedAddress = result.formatted_address;
     const addressCountry = countryComponent?.long_name;
 
-    // 2. Get IP location info
     const ipGeoResponse = await fetch(
       `https://api.ipgeolocation.io/v2/ipgeo?apiKey=${process.env.IP_GEOLOCATION_API_KEY}&ip=${clientIp}`
     );
@@ -78,11 +77,12 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({
-      isVerified: true,
+      isVerified: confidence >= 0.8,
       fullAddress: formattedAddress,
       country: addressCountry,
     });
   } catch (err) {
+    console.log(err);
     console.error("Error during verification:", err);
     return NextResponse.json(
       {

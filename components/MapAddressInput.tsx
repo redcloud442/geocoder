@@ -21,7 +21,6 @@ export default function MapAddressInput() {
   const [selectedFromGoogle, setSelectedFromGoogle] = useState(false);
   const [result, setResult] = useState<Payload | null>(null);
   const [showAddressPicker, setShowAddressPicker] = useState(false);
-  const [currentCountry, setCurrentCountry] = useState("Australia");
 
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -97,13 +96,13 @@ export default function MapAddressInput() {
 
   const handleAddressSubmit = async () => {
     if (!selectedFromGoogle && !address.trim()) {
-        setShowManualAddress(true);
-        setResult(null);
+      setShowManualAddress(true);
+      setResult(null);
     }
 
     const result = await handleFetch(address);
 
-    setResult(result)
+    setResult(result);
   };
 
   const handleManualSubmit = async (data: ManualAddress) => {
@@ -128,14 +127,10 @@ export default function MapAddressInput() {
   };
 
   return (
-    <div className="space-y-4 max-w-xl mx-auto relative">
+    <div className="space-y-2 max-w-xl mx-auto relative">
       <label htmlFor="autocomplete" className="text-sm font-medium">
         Address
       </label>
-
-      <p className="text-xs text-gray-600">
-        You are currently in <span className="font-bold">{currentCountry}</span>
-      </p>
 
       <input
         id="autocomplete"
@@ -151,11 +146,11 @@ export default function MapAddressInput() {
       />
 
       {showAddressPicker && (
-        <div className="space-y-2 border p-4 rounded bg-white text-black mt-4 absolute -top-10 -right-42">
+        <div className="space-y-2 border p-2 rounded bg-white text-black md:absolute md:-top-10 md:-right-42">
           <p className="text-sm font-medium">Can&apos;t find your address?</p>
           <button
             onClick={handleAddressPicker}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+            className="bg-blue-600 text-white p-2rounded hover:bg-blue-700 transition w-full"
           >
             Enter manually
           </button>
@@ -203,7 +198,7 @@ export default function MapAddressInput() {
 
             <button
               type="submit"
-              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition w-full"
             >
               Submit Manual Address
             </button>
