@@ -22,7 +22,6 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // 1. Geocode the address
     const geocodeResponse = await client.geocode({
       params: {
         address,
@@ -65,9 +64,7 @@ export async function GET(request: NextRequest) {
     const ipGeoData = await ipGeoResponse.json();
     const ipCountry = ipGeoData?.location?.country_name;
 
-    const isInAustralia = addressCountry === "Australia" && confidence >= 0.8;
-
-    if (!isInAustralia || ipCountry !== "Australia") {
+    if (ipCountry !== "Australia" || ipCountry !== "Philippines") {
       return NextResponse.json({
         isVerified: false,
         fullAddress: formattedAddress,
@@ -82,7 +79,6 @@ export async function GET(request: NextRequest) {
       country: addressCountry,
     });
   } catch (err) {
-    console.log(err);
     console.error("Error during verification:", err);
     return NextResponse.json(
       {

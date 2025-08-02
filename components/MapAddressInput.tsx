@@ -78,7 +78,7 @@ export default function MapAddressInput() {
 
     const observer = new MutationObserver(() => {
       const display = getComputedStyle(container).display;
-      console.log(display);
+
       if (display === "none") {
         setShowAddressPicker(true);
       } else {
