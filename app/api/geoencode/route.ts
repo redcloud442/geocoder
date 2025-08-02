@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 const client = new Client({});
 
+const allowedCountry = ["Australia", "Philippines"];
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const address = searchParams.get("address");
@@ -64,7 +66,7 @@ export async function GET(request: NextRequest) {
     const ipGeoData = await ipGeoResponse.json();
     const ipCountry = ipGeoData?.location?.country_name;
 
-    if (ipCountry !== "Australia" || ipCountry !== "Philippines") {
+    if (!allowedCountry.includes(ipCountry)) {
       return NextResponse.json({
         isVerified: false,
         fullAddress: formattedAddress,
